@@ -22,6 +22,14 @@ struct Cli {
     /// Input file in elf format
     #[arg(short, long, default_value = "app.elf")]
     file: PathBuf,
+
+    /// Width in bytes per package
+    #[arg(short, long, default_value_t = 4)]
+    width: u8,
+
+    /// Packed (no spaces between bytes)
+    #[arg(short, long)]
+    packed: bool,
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
@@ -37,16 +45,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let in_path = cli.file;
 
-    let file_data = fs::read(in_path)?;
-    let mut f_out = fs::File::create(out_path)?;
+    let file_data = fs::read(in_path.clone())?;
+    let mut f_out = fs::File::create(out_path.clone())?;
 
     let data = file_data.as_slice();
     let elf = ElfFile::new(data)?;
 
+    println!("elf2mem -f {:?} -o {:?}\n", in_path, out_path);
     let text_section = elf.find_section_by_name(".text").unwrap();
-    dump_section(&elf, text_section, data, &mut f_out)?;
+    dump_section(&elf, text_section, data, cli.width, cli.packed, &mut f_out)?;
     let data_section = elf.find_section_by_name(".data").unwrap();
-    dump_section(&elf, data_section, data, &mut f_out)?;
+    dump_section(&elf, data_section, data, cli.width, cli.packed, &mut f_out)?;
 
     Ok(())
 }
@@ -55,9 +64,10 @@ fn dump_section(
     elf: &ElfFile,
     sh: SectionHeader,
     data: &[u8],
+    width: u8,
+    packed: bool,
     f_out: &mut File,
 ) -> Result<(), Box<dyn Error>> {
-    println!("elf2mem");
     println!(
         "section {:?}, address {:#10x}, size {:#10x}",
         sh.get_name(elf)?,
@@ -69,8 +79,8 @@ fn dump_section(
     writeln!(f_out, "@ {:x?}", sh.address())?;
     let slice = &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize];
     for (i, d) in slice.iter().enumerate() {
-        write!(f_out, "{:02x?}", d)?;
-        if (i + 1) % 4 == 0 {
+        write!(f_out, "{:02x?}{}", d, if packed { "" } else { " " })?;
+        if (i + 1) % width as usize == 0 {
             writeln!(f_out)?;
         }
     }

@@ -26,7 +26,15 @@ or directly from git:
 cargo install --git https://github.com/perlindgren/elf2mem.git
 ```
 
-## Use
+## Usage
+
+For help:
+
+```shell
+elf2mem --help
+```
+
+To generate a mem file:
 
 ```shell
 elf2mem -f app.elf -o app.mem
@@ -38,12 +46,17 @@ Defaults to `.mem` extension of the elf file if out file omitted:
 elf2mem -f app.elf 
 ```
 
-Defaults to `app.elf` if elf file is omitted.
+Defaults to `app.elf` if elf file is omitted:
 
 ```shell
 elf2mem 
 ```
 
+Options:
+
+- `-w <WIDTH>` sets the width of each packet
+- `-p` packed (no space in between bytes)
+  
 ## License
 
 MIT
