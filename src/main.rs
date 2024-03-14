@@ -76,7 +76,7 @@ fn dump_section(
     );
 
     writeln!(f_out, "// section {:?}", sh.get_name(elf)?)?;
-    writeln!(f_out, "@ {:x?}", sh.address())?;
+    writeln!(f_out, "@{:x?}", sh.address())?;
     let slice = &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize];
     for (i, d) in slice.iter().enumerate() {
         write!(f_out, "{:02x?}{}", d, if packed { "" } else { " " })?;
