@@ -32,6 +32,18 @@ For help:
 
 ```shell
 elf2mem --help
+Extract .text and .data elf sections to Verilog .mem file
+
+Usage: elf2mem [OPTIONS]
+
+Options:
+  -d, --out-data <OUT_DATA>  Optional name for generated .data file [default: <input file>_data.mem)
+  -t, --out-text <OUT_TEXT>  
+  -f, --file <FILE>          Input file in elf format [default: app.elf]
+  -w, --width <WIDTH>        Width in bytes per package [default: 4]
+  -s, --spaced               Inject spaces between bytes [default: packed (no spaces)]
+  -n, --native               Native byte order [default: flipped byte order]
+  -h, --help                 Print help
 ```
 
 To generate mem files for the .data and .text sections:
@@ -49,14 +61,8 @@ elf2mem -f app.elf
 Defaults to `app.elf` if elf file is omitted:
 
 ```shell
-elf2mem 
+elf2mem
 ```
-
-Options:
-
-- `-w <WIDTH>` sets the width of each packet
-- `-p` packed (no space in between bytes)
-- `-e` flips the endianness of the ELF (defaults to true)
   
 ## License
 
