@@ -66,12 +66,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     println!("Generate output:");
-    println!("In elf file     : {:?}", cli.file);
-    println!("Out data file   : {:?}", out_path_data);
-    println!("Out text file   : {:?}", out_path_text);
-    println!("Width           : {:?}", cli.width);
-    println!("Spaced          : {:?}", cli.spaced);
-    println!("No flip         : {:?}\n", cli.native);
+    println!("In elf file       : {:?}", cli.file);
+    println!("Out data file     : {:?}", out_path_data);
+    println!("Out text file     : {:?}", out_path_text);
+    println!("Width             : {:?}", cli.width);
+    println!("Spaced            : {:?}", cli.spaced);
+    println!("Native byte order : {:?}\n", cli.native);
     
     let in_path = cli.file;
     let file_data = fs::read(in_path.clone())?;
