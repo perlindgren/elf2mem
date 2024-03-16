@@ -34,13 +34,13 @@ For help:
 elf2mem --help
 ```
 
-To generate a mem file:
+To generate mem files for the .data and .text sections:
 
 ```shell
-elf2mem -f app.elf -o app.mem
+elf2mem -f app.elf -d app_data.mem -t app_text.mem
 ```
 
-Defaults to `.mem` extension of the elf file if out file omitted:
+Defaults to `_text.mem`, and `_data.mem` extensions of the elf file if out file omitted:
 
 ```shell
 elf2mem -f app.elf 
@@ -56,6 +56,7 @@ Options:
 
 - `-w <WIDTH>` sets the width of each packet
 - `-p` packed (no space in between bytes)
+- `-e` flips the endianness of the ELF (defaults to true)
   
 ## License
 
