@@ -32,12 +32,12 @@ struct Cli {
     width: u8,
 
     /// Packed (no spaces between bytes)
-    #[arg(short, long)]
+    #[arg(short, long, default_value_t = false)]
     packed: bool,
 
     /// Flip the byte order of the loaded words
-    #[arg(short = 'e', long, default_value = "true")]
-    flip_endianness: bool,
+    #[arg(short, long, default_value_t = true)]
+    endianness_flip: bool,
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
@@ -65,8 +65,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         p
     };
 
+    println!("Generate output:");
+    println!("In elf file     : {:?}", cli.file);
+    println!("Out data file   : {:?}", out_path_data);
+    println!("Out text file   : {:?}", out_path_text);
+    println!("Width           : {:?}", cli.width);
+    println!("Packed          : {:?}", cli.packed);
+    println!("Endianness flip : {:?}\n", cli.endianness_flip);
+    
     let in_path = cli.file;
-
     let file_data = fs::read(in_path.clone())?;
     let mut f_out_text = fs::File::create(out_path_text.clone())?;
     let mut f_out_data = fs::File::create(out_path_data.clone())?;
@@ -74,7 +81,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let data = file_data.as_slice();
     let elf = ElfFile::new(data)?;
 
-    //println!("elf2mem -f {:?} -o {:?}\n", in_path, out_path);
     let text_section = elf.find_section_by_name(".text").unwrap();
     dump_section(
         &elf,
@@ -83,7 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         cli.width,
         cli.packed,
         &mut f_out_text,
-        cli.flip_endianness,
+        cli.endianness_flip,
     )?;
     let data_section = elf.find_section_by_name(".data").unwrap();
     dump_section(
@@ -93,7 +99,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         cli.width,
         cli.packed,
         &mut f_out_data,
-        cli.flip_endianness,
+        cli.endianness_flip,
     )?;
 
     Ok(())
