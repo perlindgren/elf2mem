@@ -3,12 +3,12 @@
 Converts elf files into mem files, following the `$readmemh()` format, with address in hex, data in hex values and optional comments as the example below.
 
 ```text
-@ DEADBEEF // deadbeat address followed by data
+@DEADBEEF // deadbeat address followed by data
 000FF1CE // office
 DEAD10CC // deadlock
 BAAAAAAD // baaad
 
-@ 0xC00010FF // cooloff address followed by data
+@C00010FF // cooloff address followed by data
 0D15EA5E  // zero disease  
 ```
 
