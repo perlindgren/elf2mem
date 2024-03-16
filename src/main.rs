@@ -36,7 +36,7 @@ struct Cli {
     packed: bool,
 
     /// Flip the byte order of the loaded words
-    #[arg(short, long, default_value = "true")]
+    #[arg(short = 'e', long, default_value = "true")]
     flip_endianness: bool,
 }
 fn main() -> Result<(), Box<dyn Error>> {
@@ -46,8 +46,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Value for name: {:?}", out);
         out.to_owned()
     } else {
-        let mut p: PathBuf = cli.file.clone();
-        p.set_file_name(format!("{}_data", p.file_name().unwrap().to_str().unwrap()));
+        let mut p: PathBuf = cli.file.clone().with_extension("");
+        let name = p.file_name().unwrap().to_str().unwrap();
+        let name = format!("{}_data", name);
+        p.set_file_name(name);
         p.set_extension("mem");
         p
     };
@@ -55,8 +57,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Value for name: {:?}", out);
         out.to_owned()
     } else {
-        let mut p: PathBuf = cli.file.clone();
-        p.set_file_name(format!("{}_text", p.file_name().unwrap().to_str().unwrap()));
+        let mut p: PathBuf = cli.file.clone().with_extension("");
+        let name = p.file_name().unwrap().to_str().unwrap();
+        let name = format!("{}_text", name);
+        p.set_file_name(name);
         p.set_extension("mem");
         p
     };
