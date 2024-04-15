@@ -1,6 +1,6 @@
 # elf2mem
 
-Converts elf files into mem files, following the `$readmemh()` format, with address in hex, data in hex values and optional comments as the example below.
+Converts `elf` files into `.mem` files, following the `$readmemh()` format, with address in hex, data in hex values and optional comments as the example below.
 
 ```text
 @DEADBEEF // deadbeat address followed by data
