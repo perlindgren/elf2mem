@@ -15,13 +15,9 @@ use clap::Parser;
 )]
 
 struct Cli {
-    /// Optional name for generated .data file [default: <input file>_data.mem)
-    #[arg(short = 'd', long)]
-    out_data: Option<PathBuf>,
-
-    // Optional name for generated .text file [default: <input file>_text.mem]
-    #[arg(short = 't', long)]
-    out_text: Option<PathBuf>,
+    /// Path for output
+    #[arg(short, long)]
+    out_dir: Option<PathBuf>,
 
     /// Input file in elf format
     #[arg(short, long, default_value = "app.elf")]
@@ -31,52 +27,47 @@ struct Cli {
     #[arg(short, long, default_value_t = 4)]
     width: u8,
 
-    /// Inject spaces between bytes [default: packed (no spaces)]
+    /// Packed [default: non-packed (spaces)]
     #[arg(short, long)]
-    spaced: bool,
+    packed: bool,
 
     /// Native byte order [default: flipped byte order]
     #[arg(short, long)]
     native: bool,
 }
+
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
-    let out_path_data: PathBuf = if let Some(out) = cli.out_data.as_deref() {
-        println!("Value for name: {:?}", out);
+    let mut out_path_text: PathBuf = if let Some(out) = cli.out_dir.as_deref() {
         out.to_owned()
     } else {
-        let mut p: PathBuf = cli.file.clone().with_extension("");
-        let name = p.file_name().unwrap().to_str().unwrap();
-        let name = format!("{}_data", name);
-        p.set_file_name(name);
-        p.set_extension("mem");
-        p
+        PathBuf::new()
     };
-    let out_path_text: PathBuf = if let Some(out) = cli.out_text.as_deref() {
-        println!("Value for name: {:?}", out);
-        out.to_owned()
-    } else {
-        let mut p: PathBuf = cli.file.clone().with_extension("");
-        let name = p.file_name().unwrap().to_str().unwrap();
-        let name = format!("{}_text", name);
-        p.set_file_name(name);
-        p.set_extension("mem");
-        p
-    };
+    out_path_text.push(out_path_text.with_file_name("text.mem"));
 
+    let mut ro_path: Vec<PathBuf> = vec![];
+    let mut ro_f = vec![];
+    for i in 0..4 {
+        let mut p = if let Some(out_dir) = cli.out_dir.clone() {
+            out_dir
+        } else {
+            PathBuf::new()
+        };
+        p.push(p.with_file_name(format!("data_{}.mem", i)));
+        ro_path.push(p.clone());
+        ro_f.push(fs::File::create(p)?);
+    }
     println!("Generate output:");
     println!("In elf file       : {:?}", cli.file);
-    println!("Out data file     : {:?}", out_path_data);
-    println!("Out text file     : {:?}", out_path_text);
+    println!("Out-dir           : {:?}", cli.out_dir.unwrap_or_default());
     println!("Width             : {:?}", cli.width);
-    println!("Spaced            : {:?}", cli.spaced);
+    println!("Packed            : {:?}", cli.packed);
     println!("Native byte order : {:?}\n", cli.native);
-    
+
     let in_path = cli.file;
     let file_data = fs::read(in_path.clone())?;
     let mut f_out_text = fs::File::create(out_path_text.clone())?;
-    let mut f_out_data = fs::File::create(out_path_data.clone())?;
 
     let data = file_data.as_slice();
     let elf = ElfFile::new(data)?;
@@ -87,20 +78,41 @@ fn main() -> Result<(), Box<dyn Error>> {
         text_section,
         data,
         cli.width,
-        cli.spaced,
+        cli.packed,
         &mut f_out_text,
         !cli.native,
     )?;
-    let data_section = elf.find_section_by_name(".data").unwrap();
-    dump_section(
-        &elf,
-        data_section,
-        data,
-        cli.width,
-        cli.spaced,
-        &mut f_out_data,
-        !cli.native,
-    )?;
+
+    let data_section = elf.find_section_by_name(".rodata").unwrap();
+    dump_ro_data(&elf, data_section, data, &mut ro_f)?;
+
+    Ok(())
+}
+
+fn dump_ro_data(
+    elf: &ElfFile,
+    sh: SectionHeader,
+    data: &[u8],
+    ro_f: &mut Vec<fs::File>,
+) -> Result<(), Box<dyn Error>> {
+    println!(
+        "section {:?}, \taddress {:#10x}, \tsize {:#10x}",
+        sh.get_name(elf)?,
+        sh.address(),
+        sh.size()
+    );
+
+    for i in 0..4 {
+        writeln!(ro_f[i], "// section {:?} [{}]", sh.get_name(elf)?, i)?;
+        writeln!(ro_f[i], "@{:x?}", sh.address())?;
+    }
+
+    let d = &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize];
+    let mut i = 0;
+    for byte in d {
+        write!(ro_f[i], "{:x} ", byte)?;
+        i = (i + 1) % 4;
+    }
 
     Ok(())
 }
@@ -115,7 +127,7 @@ fn dump_section(
     flip: bool,
 ) -> Result<(), Box<dyn Error>> {
     println!(
-        "section {:?}, address {:#10x}, size {:#10x}",
+        "section {:?}, \taddress {:#10x}, \tsize {:#10x}",
         sh.get_name(elf)?,
         sh.address(),
         sh.size()

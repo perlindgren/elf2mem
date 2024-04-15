@@ -31,38 +31,32 @@ cargo install --git https://github.com/perlindgren/elf2mem.git
 For help:
 
 ```shell
-elf2mem --help
 Extract .text and .data elf sections to Verilog .mem file
 
 Usage: elf2mem [OPTIONS]
 
 Options:
-  -d, --out-data <OUT_DATA>  Optional name for generated .data file [default: <input file>_data.mem)
-  -t, --out-text <OUT_TEXT>  
-  -f, --file <FILE>          Input file in elf format [default: app.elf]
-  -w, --width <WIDTH>        Width in bytes per package [default: 4]
-  -s, --spaced               Inject spaces between bytes [default: packed (no spaces)]
-  -n, --native               Native byte order [default: flipped byte order]
-  -h, --help                 Print help
+  -o, --out-dir <OUT_DIR>  Path for output
+  -f, --file <FILE>        Input file in elf format [default: app.elf]
+  -w, --width <WIDTH>      Width in bytes per package [default: 4]
+  -p, --packed             Packed [default: non-packed (spaces)]
+  -n, --native             Native byte order [default: flipped byte order]
+  -h, --help               Print help
 ```
 
-To generate mem files for the .data and .text sections:
+To generate mem files for the `.rodata` and `.text` sections:
 
 ```shell
-elf2mem -f app.elf -d app_data.mem -t app_text.mem
+elf2mem -f app.elf
 ```
 
-Defaults to `_text.mem`, and `_data.mem` extensions of the elf file if out file omitted:
-
-```shell
-elf2mem -f app.elf 
-```
-
-Defaults to `app.elf` if elf file is omitted:
+Creates `text.mem`, and `data_[0..4].mem` in current folder by default, or according to `--out-dir` if provided.
 
 ```shell
 elf2mem
 ```
+
+Defaults to `app.elf` if `--file` is omitted:
   
 ## License
 

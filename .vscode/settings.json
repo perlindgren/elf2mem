@@ -6,6 +6,7 @@
         "baaad",
         "cooloff",
         "endianness",
-        "readmemh"
+        "readmemh",
+        "rodata"
     ]
 }
