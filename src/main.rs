@@ -93,7 +93,7 @@ fn dump_ro_data(
     elf: &ElfFile,
     sh: SectionHeader,
     data: &[u8],
-    ro_f: &mut Vec<fs::File>,
+    ro_f: &mut [fs::File],
 ) -> Result<(), Box<dyn Error>> {
     println!(
         "section {:?}, \taddress {:#10x}, \tsize {:#10x}",
@@ -102,16 +102,15 @@ fn dump_ro_data(
         sh.size()
     );
 
-    for i in 0..4 {
-        writeln!(ro_f[i], "// section {:?} [{}]", sh.get_name(elf)?, i)?;
-        writeln!(ro_f[i], "@{:x?}", sh.address())?;
+    for (i, mut ro) in ro_f.iter().enumerate() {
+        writeln!(ro, "// section {:?} [{}]", sh.get_name(elf)?, i)?;
+        writeln!(ro, "@{:x?}", sh.address())?;
     }
 
     let d = &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize];
-    let mut i = 0;
-    for byte in d {
-        write!(ro_f[i], "{:x} ", byte)?;
-        i = (i + 1) % 4;
+
+    for (i, byte) in d.iter().enumerate() {
+        write!(ro_f[i % 4], "{:x} ", byte)?;
     }
 
     Ok(())
@@ -138,7 +137,7 @@ fn dump_section(
     let mut v = vec![];
     let slice = if flip {
         let d = &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize];
-        for chunk in d.chunks(4).into_iter() {
+        for chunk in d.chunks(4) {
             let mut c = chunk.to_owned();
             c.reverse();
             for b in c {
@@ -147,11 +146,10 @@ fn dump_section(
         }
         v.as_slice()
     } else {
-        let d = &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize];
-        d
+        &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize]
     };
 
-    for (i, d) in slice.into_iter().enumerate() {
+    for (i, d) in slice.iter().enumerate() {
         write!(f_out, "{:02x?}{}", d, if spaced { " " } else { "" })?;
         if (i + 1) % width as usize == 0 {
             writeln!(f_out)?;
