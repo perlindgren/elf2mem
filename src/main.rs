@@ -101,10 +101,9 @@ fn dump_ro_data(
         sh.address(),
         sh.size()
     );
-
     for (i, mut ro) in ro_f.iter().enumerate() {
         writeln!(ro, "// section {:?} [{}]", sh.get_name(elf)?, i)?;
-        writeln!(ro, "@{:x?}", sh.address())?;
+        writeln!(ro, "@{:x?}", sh.address() - 0x5000_0000)?;
     }
 
     let d = &data[sh.offset() as usize..(sh.offset() + sh.size()) as usize];
