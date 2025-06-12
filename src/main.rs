@@ -83,8 +83,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         !cli.native,
     )?;
 
-    let data_section = elf.find_section_by_name(".rodata").unwrap();
-    dump_ro_data(&elf, data_section, data, &mut ro_f)?;
+    if let Some(data_section) = elf.find_section_by_name(".rodata") {
+        dump_ro_data(&elf, data_section, data, &mut ro_f)?;
+    }
 
     Ok(())
 }
